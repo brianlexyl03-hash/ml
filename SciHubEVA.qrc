@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
+        <file>i18n/SciHubEVA_zh_CN.qm</file>
+        <file>i18n/SciHubEVA_pt_PT.qm</file>
         <file>ui/About.qml</file>
         <file>ui/AddSciHubURL.qml</file>
         <file>ui/Captcha.qml</file>
