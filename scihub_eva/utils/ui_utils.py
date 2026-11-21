@@ -1,7 +1,10 @@
 import os
 from pathlib import Path
 
-import darkdetect
+try:
+    import darkdetect
+except ImportError:  # Optional on Android builds.
+    darkdetect = None
 from PySide6.QtGui import QWindow
 
 from scihub_eva.globals.preferences import (
@@ -24,7 +27,7 @@ def center_window(window: QWindow, parent_window: QWindow) -> None:
 
 def is_system_dark_theme() -> bool:
     try:
-        return darkdetect.isDark() or False
+        return darkdetect.isDark() or False if darkdetect is not None else False
     except Exception:
         # Desktop theme probes are not available on every Android device.
         return False
