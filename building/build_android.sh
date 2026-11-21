@@ -26,11 +26,13 @@ subprocess.check_call([
     "qtpip",
 ])
 PY
+python -m compileall -q app.py main.py scihub_eva
 python building/convert_i18n_zh.py
 pyside6-lrelease i18n/SciHubEVA_*.ts
-pyside6-rcc SciHubEVA.qrc -o scihub_eva/resources.py
+# Qt for Android is built without zstd resource support.
+pyside6-rcc --no-compress SciHubEVA.qrc -o scihub_eva/resources.py
 
-echo "Downloading the matching PySide6 Android ARM64 wheels..."
+echo "Downloading matching PySide6 and Shiboken6 Android ARM64 wheels..."
 mkdir -p "$WHEEL_DIR"
 (
     cd "$WHEEL_DIR"
@@ -61,8 +63,8 @@ if [[ -z "$NDK_PATH" || -z "$SDK_PLATFORM_TOOLS" ]]; then
 fi
 SDK_PATH="$(dirname "$SDK_PLATFORM_TOOLS")"
 
-echo "Building SciHubEVA for Android arm64-v8a..."
-pyside6-android-deploy main.py \
+echo "Generating the Qt deployment recipes and Buildozer configuration..."
+pyside6-android-deploy --init \
     --name SciHubEVA \
     --wheel-pyside="$PYSIDE_WHEEL" \
     --wheel-shiboken="$SHIBOKEN_WHEEL" \
@@ -70,9 +72,75 @@ pyside6-android-deploy main.py \
     --sdk-path="$SDK_PATH" \
     --force --keep-deployment-files
 
+echo "Adding the app's Python requirements and Android metadata..."
+python - <<'PY'
+import configparser
+from pathlib import Path
+
+spec_path = Path("buildozer.spec")
+if not spec_path.is_file():
+    raise SystemExit("pyside6-android-deploy did not generate buildozer.spec")
+
+spec = configparser.ConfigParser(interpolation=None)
+spec.optionxform = str
+spec.read(spec_path, encoding="utf-8")
+if "app" not in spec:
+    raise SystemExit("Generated buildozer.spec has no [app] section")
+
+app = spec["app"]
+requirements = [
+    item.strip()
+    for item in app.get("requirements", "").split(",")
+    if item.strip()
+]
+additional = [
+    "requests",
+    "urllib3",
+    "idna",
+    "certifi",
+    "charset-normalizer",
+    "PySocks",
+    "lxml",
+    "pdfminer.six",
+    "pathvalidate",
+    "darkdetect",
+    "cryptography",
+    "cffi",
+    "pycparser",
+]
+seen = {item.lower() for item in requirements}
+requirements.extend(item for item in additional if item.lower() not in seen)
+app["requirements"] = ",".join(requirements)
+
+app["title"] = "SciHubEVA"
+app["package.name"] = "scihubeva"
+app["package.domain"] = "io.github.brianlexyl03hash"
+app["version"] = "6.5.1"
+app["orientation"] = "portrait"
+app["icon.filename"] = "images/SciHubEVA-icon.png"
+app["source.exclude_dirs"] = ".git,building,design,tests,dist,artifacts,.github"
+app["android.permissions"] = "INTERNET"
+app["android.api"] = "35"
+app["android.minapi"] = "28"
+app["android.archs"] = "arm64-v8a"
+app["android.accept_sdk_license"] = "True"
+app["android.skip_update"] = "True"
+app["android.allow_backup"] = "False"
+
+with spec_path.open("w", encoding="utf-8") as output:
+    spec.write(output)
+
+print("Android requirements:", app["requirements"])
+PY
+
+echo "Building the ARM64 debug APK with Buildozer..."
+export VIRTUAL_ENV="${VIRTUAL_ENV:-$(python -c 'import sys; print(sys.prefix)')}"
+export PATH="$(dirname "$(command -v python)"):$PATH"
+python -m buildozer android debug
+
 APK_PATH="$(find "$ROOT_DIR" -type f -name '*.apk' -not -path '*/.git/*' -print -quit)"
 if [[ -z "$APK_PATH" ]]; then
-    echo "Android deployment completed without producing an APK." >&2
+    echo "Buildozer completed without producing an APK." >&2
     exit 1
 fi
 mkdir -p "$ROOT_DIR/artifacts"
