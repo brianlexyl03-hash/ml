@@ -288,6 +288,23 @@ ApplicationWindow {
             text: qsTr("Logs: ")
         }
 
+        RowLayout {
+            visible: mobileLayout
+            Layout.fillWidth: true
+
+            Button {
+                text: qsTr("Export failed queries")
+                Layout.fillWidth: true
+                onClicked: fileDialogExportFailedQueries.open()
+            }
+
+            Button {
+                text: qsTr("Open log")
+                Layout.fillWidth: true
+                onClicked: systemOpenLogFile()
+            }
+        }
+
         Flickable {
             id: flickableLogs
 
