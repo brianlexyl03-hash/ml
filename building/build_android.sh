@@ -60,13 +60,14 @@ if [[ -z "$NDK_PATH" || -z "$SDK_PLATFORM_TOOLS" ]]; then
 fi
 SDK_PATH="$(dirname "$SDK_PLATFORM_TOOLS")"
 
-echo "Installing Android 16 SDK platform required for Google Play submissions..."
-SDKMANAGER="$(find "$SDK_PATH/cmdline-tools" -type f -name sdkmanager -print -quit)"
-if [[ -z "$SDKMANAGER" ]]; then
-    echo "Could not locate Android sdkmanager." >&2
+echo "Using the Android SDK platform installed by the official Qt toolchain..."
+# The Qt 6.12 Android toolchain currently provisions API 35. Avoid a second
+# sdkmanager bootstrap here: it aborts in GitHub Actions with a broken-pipe
+# license prompt before the application build even starts.
+if [[ ! -d "$SDK_PATH/platforms/android-35" ]]; then
+    echo "Required Android SDK platform 35 is missing from $SDK_PATH." >&2
     exit 1
 fi
-"$SDKMANAGER" --sdk_root="$SDK_PATH" "platforms;android-36"
 
 echo "Stripping native debug symbols from the Android wheels to reduce APK size..."
 LLVM_STRIP="$(find "$NDK_PATH/toolchains/llvm/prebuilt" -name llvm-strip -print -quit)"
@@ -192,7 +193,7 @@ app["icon.filename"] = "images/SciHubEVA-icon.png"
 app["source.exclude_dirs"] = ".git,building,design,docs,tests,dist,artifacts,.github,deployment,bin,.buildozer"
 app["source.exclude_patterns"] = "scihub_eva/api/scihub_fake_server.py,*.pyc,*.pyo"
 app["android.permissions"] = "INTERNET"
-app["android.api"] = "36"
+app["android.api"] = "35"
 app["android.minapi"] = "28"
 app["android.archs"] = "arm64-v8a"
 app["android.accept_sdk_license"] = "True"
