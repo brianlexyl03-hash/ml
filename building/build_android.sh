@@ -196,6 +196,72 @@ with spec_path.open("w", encoding="utf-8") as output:
 print("Android requirements:", app["requirements"])
 PY
 
+echo "Preparing the Qt Android bootstrap before compiling..."
+export VIRTUAL_ENV="${VIRTUAL_ENV:-$(python -c 'import sys; print(sys.prefix)')}"
+export PATH="$(dirname "$(command -v python)"):$PATH"
+python -m buildozer android update
+
+echo "Patching QtLoader to initialize QtCore before QtQuick..."
+python - <<'PY'
+from pathlib import Path
+import os
+import sys
+
+root = Path.cwd()
+search_roots = [
+    root / ".buildozer",
+    Path.home() / ".buildozer",
+]
+candidates = []
+for base in search_roots:
+    if base.exists():
+        candidates.extend(base.rglob("QtLoader.java"))
+
+candidates = [
+    path for path in candidates
+    if path.as_posix().endswith("/org/qtproject/qt/android/QtLoader.java")
+]
+if not candidates:
+    raise SystemExit(
+        "QtLoader.java was not found after 'buildozer android update'; "
+        "refusing to build an APK without the QtCore JNI load-order fix."
+    )
+
+patched = 0
+needle = (
+    "ArrayList<String> nativeLibraries = getQtLibrariesList();\\n"
+    "        nativeLibraries.addAll(getLocalLibrariesList());"
+)
+replacement = (
+    "ArrayList<String> nativeLibraries = getQtLibrariesList();\\n"
+    "        // QtCore caches JavaVM in JNI_OnLoad. Load it before QtQuick and other modules.\\n"
+    "        for (int i = 0; i < nativeLibraries.size(); ++i) {\\n"
+    "            if (nativeLibraries.get(i).contains(\\"Qt6Core\\")) {\\n"
+    "                String qtCoreLibrary = nativeLibraries.remove(i);\\n"
+    "                nativeLibraries.add(0, qtCoreLibrary);\\n"
+    "                break;\\n"
+    "            }\\n"
+    "        }\\n"
+    "        nativeLibraries.addAll(getLocalLibrariesList());"
+)
+for path in candidates:
+    source = path.read_text(encoding="utf-8")
+    if "qtCoreLibrary = nativeLibraries.remove(i)" in source:
+        patched += 1
+        continue
+    if needle not in source:
+        continue
+    path.write_text(source.replace(needle, replacement, 1), encoding="utf-8")
+    patched += 1
+
+if not patched:
+    raise SystemExit(
+        "QtLoader.java was found, but its loadQtLibraries() sequence did not "
+        "match the expected Qt 6.12 source; refusing an unsafe patch."
+    )
+print(f"Applied QtCore-first JNI initialization patch to {patched} QtLoader source file(s).")
+PY
+
 echo "Building the ARM64 debug APK with Buildozer..."
 export VIRTUAL_ENV="${VIRTUAL_ENV:-$(python -c 'import sys; print(sys.prefix)')}"
 export PATH="$(dirname "$(command -v python)"):$PATH"
