@@ -60,7 +60,11 @@ def open_directory(directory: str, timeout: int = 3) -> None:
 
 def copy_content_uri_to_temp_file(uri: str) -> str:
     """Copy a user-selected Android document URI into app-readable temp storage."""
-    if not is_android() or not uri.startswith('content://'):
+    if not is_android():
+        return uri
+    if uri.startswith('file://'):
+        return QUrl(uri).toLocalFile()
+    if not uri.startswith('content://'):
         return uri
 
     source = QFile(uri)
@@ -79,6 +83,9 @@ def copy_content_uri_to_temp_file(uri: str) -> str:
 
 def write_text_file(path: str, contents: str) -> None:
     """Write text to a local path or an Android Storage Access Framework URI."""
+    if is_android() and path.startswith('file://'):
+        path = QUrl(path).toLocalFile()
+
     if is_android() and path.startswith('content://'):
         target = QFile(path)
         mode = QIODevice.OpenModeFlag.WriteOnly | QIODevice.OpenModeFlag.Truncate
