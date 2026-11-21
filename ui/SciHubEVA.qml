@@ -18,13 +18,14 @@ ApplicationWindow {
 
     property int margin: 10
     property int theme: Material.theme
+    property bool mobileLayout: Qt.platform.os === "android"
 
-    width: columnLayoutApplication.implicitWidth + 2 * margin
-    height: columnLayoutApplication.implicitHeight + 2 * margin
-    minimumWidth: columnLayoutApplication.Layout.minimumWidth + 2 * margin
-    minimumHeight: columnLayoutApplication.Layout.minimumHeight + 2 * margin
-    maximumWidth: columnLayoutApplication.Layout.maximumWidth + 2 * margin
-    maximumHeight: columnLayoutApplication.Layout.maximumHeight + 2 * margin
+    width: mobileLayout ? 360 : columnLayoutApplication.implicitWidth + 2 * margin
+    height: mobileLayout ? 640 : columnLayoutApplication.implicitHeight + 2 * margin
+    minimumWidth: mobileLayout ? 320 : columnLayoutApplication.Layout.minimumWidth + 2 * margin
+    minimumHeight: mobileLayout ? 480 : columnLayoutApplication.Layout.minimumHeight + 2 * margin
+    maximumWidth: mobileLayout ? 480 : columnLayoutApplication.Layout.maximumWidth + 2 * margin
+    maximumHeight: mobileLayout ? 900 : columnLayoutApplication.Layout.maximumHeight + 2 * margin
 
     signal openSaveToDir(string directory)
     signal systemOpenSaveToDir(string directory)
@@ -163,8 +164,8 @@ ApplicationWindow {
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            rows: 2
-            columns: 5
+            rows: mobileLayout ? 5 : 2
+            columns: mobileLayout ? 2 : 5
 
             Label {
                 text: qsTr("Query: ")
@@ -176,8 +177,8 @@ ApplicationWindow {
                 id: textFieldQuery
                 placeholderText: qsTr("URL, PMID, DOI, Title or Query List File")
 
-                implicitWidth: 300
-                Layout.minimumWidth: 300
+                implicitWidth: mobileLayout ? 0 : 300
+                Layout.minimumWidth: mobileLayout ? 0 : 300
                 Layout.fillWidth: true
 
                 selectByMouse: true
@@ -287,7 +288,7 @@ ApplicationWindow {
 
             flickableDirection: Flickable.VerticalFlick
 
-            Layout.minimumHeight: 200
+            Layout.minimumHeight: mobileLayout ? 140 : 200
             Layout.fillWidth: true
 
             ScrollBar.vertical: UIElements.ScrollBar {
