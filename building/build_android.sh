@@ -11,7 +11,21 @@ cd "$ROOT_DIR"
 
 echo "Preparing Python dependencies and Qt resource files..."
 python -m pip install --upgrade pip
-python -m pip install -e . opencc-python-reimplemented==0.1.7 qtpip
+python - <<'PY'
+import subprocess
+import sys
+import tomllib
+
+with open("pyproject.toml", "rb") as project_file:
+    dependencies = tomllib.load(project_file)["project"]["dependencies"]
+
+subprocess.check_call([
+    sys.executable, "-m", "pip", "install",
+    *dependencies,
+    "opencc-python-reimplemented==0.1.7",
+    "qtpip",
+])
+PY
 python building/convert_i18n_zh.py
 pyside6-lrelease i18n/SciHubEVA_*.ts
 pyside6-rcc SciHubEVA.qrc -o scihub_eva/resources.py
