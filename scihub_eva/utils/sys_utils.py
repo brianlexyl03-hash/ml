@@ -10,7 +10,10 @@ from PySide6.QtCore import QFile, QIODevice, QUrl, qVersion
 from PySide6.QtGui import QDesktopServices
 
 DEFAULT_ENCODING = 'utf-8'
-SYSTEM_LANGUAGE = locale.getdefaultlocale()[0]
+try:
+    SYSTEM_LANGUAGE = locale.getlocale()[0] or locale.getdefaultlocale()[0] or 'en_US'
+except (ValueError, TypeError):
+    SYSTEM_LANGUAGE = 'en_US'
 
 PYTHON_VERSION = '.'.join(str(v) for v in sys.version_info[:3])
 QT_VERSION = qVersion()
