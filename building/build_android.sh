@@ -201,48 +201,43 @@ export VIRTUAL_ENV="${VIRTUAL_ENV:-$(python -c 'import sys; print(sys.prefix)')}
 export PATH="$(dirname "$(command -v python)"):$PATH"
 python -m buildozer android update
 
-echo "Patching QtLoader to initialize QtCore before QtQuick..."
+echo "Patching Qt bootstrap library order so QtCore initializes before QtQuick..."
 python - <<'PY'
 from pathlib import Path
-import os
-import sys
 
-root = Path.cwd()
 search_roots = [
-    root / ".buildozer",
+    Path.cwd() / ".buildozer",
     Path.home() / ".buildozer",
 ]
-candidates = []
+templates = []
 for base in search_roots:
     if base.exists():
-        candidates.extend(base.rglob("QtLoader.java"))
+        templates.extend(base.rglob("libs.tmpl.xml"))
 
-candidates = [
-    path for path in candidates
-    if path.as_posix().endswith("/org/qtproject/qt/android/QtLoader.java")
+templates = [
+    path for path in templates
+    if "bootstraps/qt/build/templates/libs.tmpl.xml" in path.as_posix()
 ]
-if not candidates:
+if not templates:
     raise SystemExit(
-        "QtLoader.java was not found after 'buildozer android update'; "
-        "refusing to build an APK without the QtCore JNI load-order fix."
+        "Qt bootstrap libs.tmpl.xml was not found after 'buildozer android update'; "
+        "refusing to build without the QtCore-first JNI initialization fix."
     )
 
+needle = """    <array name="qt_libs">
+        <item>{{ arch }};c++_shared</item>
+        {%- for qt_lib in qt_libs %}
+"""
+replacement = """    <array name="qt_libs">
+        <item>{{ arch }};c++_shared</item>
+        <!-- QtCore JNI_OnLoad caches JavaVM; it must run before QtQuick. -->
+        <item>{{ arch }};Qt6Core_{{ arch }}</item>
+        {%- for qt_lib in qt_libs if qt_lib != "Core" %}
+"""
 patched = 0
-needle = """ArrayList<String> nativeLibraries = getQtLibrariesList();
-        nativeLibraries.addAll(getLocalLibrariesList());"""
-replacement = """ArrayList<String> nativeLibraries = getQtLibrariesList();
-        // QtCore caches JavaVM in JNI_OnLoad. Load it before QtQuick and other modules.
-        for (int i = 0; i < nativeLibraries.size(); ++i) {
-            if (nativeLibraries.get(i).contains("Qt6Core")) {
-                String qtCoreLibrary = nativeLibraries.remove(i);
-                nativeLibraries.add(0, qtCoreLibrary);
-                break;
-            }
-        }
-        nativeLibraries.addAll(getLocalLibrariesList());"""
-for path in candidates:
+for path in templates:
     source = path.read_text(encoding="utf-8")
-    if "qtCoreLibrary = nativeLibraries.remove(i)" in source:
+    if "Qt6Core_{{ arch }}" in source:
         patched += 1
         continue
     if needle not in source:
@@ -252,11 +247,12 @@ for path in candidates:
 
 if not patched:
     raise SystemExit(
-        "QtLoader.java was found, but its loadQtLibraries() sequence did not "
-        "match the expected Qt 6.12 source; refusing an unsafe patch."
+        "Qt bootstrap template was found, but its qt_libs block differed; "
+        "refusing an unsafe patch."
     )
-print(f"Applied QtCore-first JNI initialization patch to {patched} QtLoader source file(s).")
+print(f"Applied QtCore-first library ordering to {patched} Qt bootstrap template(s).")
 PY
+
 
 echo "Building the ARM64 debug APK with Buildozer..."
 export VIRTUAL_ENV="${VIRTUAL_ENV:-$(python -c 'import sys; print(sys.prefix)')}"
