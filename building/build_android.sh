@@ -94,19 +94,19 @@ requirements = [
     if item.strip()
 ]
 additional = [
-    "requests",
-    "urllib3",
-    "idna",
-    "certifi",
-    "charset-normalizer",
-    "PySocks",
-    "lxml",
-    "pdfminer.six",
-    "pathvalidate",
-    "darkdetect",
-    "cryptography",
-    "cffi",
-    "pycparser",
+    "requests==2.32.5",
+    "urllib3==2.6.3",
+    "idna==3.20",
+    "certifi==2026.11.20",
+    "charset-normalizer==3.5.2",
+    "PySocks==1.7.1",
+    "lxml==6.0.2",
+    "pdfminer.six==20260107",
+    "pathvalidate==3.3.1",
+    "darkdetect==0.8.0",
+    "cryptography==50.0.2",
+    "cffi==2.1.1",
+    "pycparser==3.12",
 ]
 seen = {item.lower() for item in requirements}
 requirements.extend(item for item in additional if item.lower() not in seen)
