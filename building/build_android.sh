@@ -173,6 +173,7 @@ additional = [
     "idna==3.20",
     "certifi==2026.11.20",
     "charset-normalizer==3.5.2",
+    "cryptography==46.0.3",
     "PySocks==1.7.1",
     "lxml==6.0.2",
     "pdfminer.six==20260107",
