@@ -20,8 +20,8 @@ ApplicationWindow {
     property int margin: 10
     property bool mobileLayout: Qt.platform.os === "android"
 
-    width: mobileLayout ? 360 : columnLayoutPreferences.implicitWidth + 2 * margin
-    height: mobileLayout ? 640 : columnLayoutPreferences.implicitHeight + 2 * margin
+    width: mobileLayout ? Screen.width : columnLayoutPreferences.implicitWidth + 2 * margin
+    height: mobileLayout ? Screen.height : columnLayoutPreferences.implicitHeight + 2 * margin
     minimumWidth: mobileLayout ? 320 : columnLayoutPreferences.Layout.minimumWidth + 2 * margin
     minimumHeight: mobileLayout ? 480 : columnLayoutPreferences.Layout.minimumHeight + 2 * margin
 
