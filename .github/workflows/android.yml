@@ -1,0 +1,59 @@
+name: Android ARM64 APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "app.py"
+      - "main.py"
+      - "pyproject.toml"
+      - "SciHubEVA.qrc"
+      - "scihub_eva/**"
+      - "ui/**"
+      - "i18n/**"
+      - "building/build_android.sh"
+      - ".github/workflows/android.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-android-arm64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install Android build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential ccache cmake git libffi-dev libssl-dev \
+            libncurses-dev unzip zip zlib1g-dev
+
+      - name: Build Android APK
+        run: |
+          chmod +x building/build_android.sh
+          ./building/build_android.sh
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SciHubEVA-android-arm64-debug
+          path: artifacts/SciHubEVA-android-arm64-debug.apk
+          if-no-files-found: error
+          retention-days: 14
