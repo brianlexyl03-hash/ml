@@ -18,6 +18,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: android-arm64-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-android-arm64:
     runs-on: ubuntu-24.04
@@ -42,8 +46,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential ccache cmake git libffi-dev libssl-dev \
-            libncurses-dev unzip zip zlib1g-dev
+            build-essential ccache cmake git libdouble-conversion3 libffi-dev \
+            libssl-dev libncurses-dev unzip zip zlib1g-dev
 
       - name: Build Android APK
         run: |
