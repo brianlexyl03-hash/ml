@@ -225,7 +225,7 @@ recipe = """from pythonforandroid.recipe import PythonRecipe
 class PdfminerSixRecipe(PythonRecipe):
     name = "pdfminer.six"
     version = "20260107"
-    url = "https://files.pythonhosted.org/packages/34/a4/5cec1112009f0439f0439a5ca6afa8ace321f0ab2f48da3255b7a1c8953014670/pdfminer_six-20260107.tar.gz"
+    url = "https://files.pythonhosted.org/packages/34/a4/5cec1112009f0439a5ca6afa8ace321f0ab2f48da3255b7a1c8953014670/pdfminer_six-20260107.tar.gz"
     depends = ["python3"]
     python_depends = ["charset-normalizer"]
     site_packages_name = "pdfminer"
