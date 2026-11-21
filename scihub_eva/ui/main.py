@@ -137,10 +137,8 @@ class UISciHubEVA(QObject):
 
     @Slot(str)
     def export_failed_queries(self, path: str) -> None:
-        with open(path, 'wt') as f:
-            for failed_query in self._failed_queries:
-                f.write(failed_query + '\n')
-
+        contents = ''.join(failed_query + '\n' for failed_query in self._failed_queries)
+        write_text_file(path, contents)
         self._failed_queries.clear()
 
     @Slot(str)
