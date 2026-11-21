@@ -62,12 +62,43 @@ class UISciHubEVA(QObject):
         self._engine.rootContext().setContextProperty('QT_VERSION', QT_VERSION)
         self._engine.load('qrc:/ui/SciHubEVA.qml')
         root_objects = self._engine.rootObjects()
-        if not root_objects:
+        self._startup_failed = not bool(root_objects)
+        if self._startup_failed:
             details = '\\n'.join(self._qml_warnings) or 'No QML root object was created.'
-            raise RuntimeError(f'Could not load the main EVA screen:\\n{details}')
+            self._logger.error('Could not load the main EVA screen: ' + details)
+            self._engine.rootContext().setContextProperty('STARTUP_ERROR', details)
+            self._engine.loadData(
+                b"""import QtQuick
+import QtQuick.Window
+
+Window {
+    visible: true
+    width: 360
+    height: 640
+    color: "#151922"
+    title: "EVA - startup diagnostics"
+
+    TextEdit {
+        anchors.fill: parent
+        anchors.margins: 24
+        color: "#f2f4f8"
+        wrapMode: TextEdit.Wrap
+        readOnly: true
+        selectByMouse: true
+        text: "EVA installed, but its main screen could not load.\\n\\n"
+              + STARTUP_ERROR
+              + "\\n\\nPlease copy this message or send the Android crash log."
+    }
+}"""
+            )
+            root_objects = self._engine.rootObjects()
+        if not root_objects:
+            raise RuntimeError('Neither the main EVA screen nor its diagnostic screen could load.')
         self._window = root_objects[0]
 
         self._logger.addHandler(UISciHubEVALogHandler(self))
+        if self._startup_failed:
+            return
 
         self._connect()
 
