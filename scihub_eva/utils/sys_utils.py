@@ -5,7 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import qVersion
+from PySide6.QtCore import QUrl, qVersion
+from PySide6.QtGui import QDesktopServices
 
 DEFAULT_ENCODING = 'utf-8'
 SYSTEM_LANGUAGE = locale.getdefaultlocale()[0]
@@ -22,12 +23,18 @@ def is_macos() -> bool:
     return platform.system() == 'Darwin'
 
 
+def is_android() -> bool:
+    return sys.platform == 'android' or 'ANDROID_ARGUMENT' in os.environ
+
+
 def is_linux() -> bool:
-    return platform.system() == 'Linux'
+    return platform.system() == 'Linux' and not is_android()
 
 
 def open_file(file_path: str, timeout: int = 3) -> None:
-    if is_windows():
+    if is_android():
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(file_path)))
+    elif is_windows():
         os.startfile(file_path)  # type: ignore
     elif is_macos():
         subprocess.call(['open', file_path], timeout=timeout)
@@ -38,7 +45,9 @@ def open_file(file_path: str, timeout: int = 3) -> None:
 
 
 def open_directory(directory: str, timeout: int = 3) -> None:
-    if is_windows():
+    if is_android():
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(directory)))
+    elif is_windows():
         subprocess.call(['explorer', str(Path(directory))], timeout=timeout)
     elif is_macos():
         subprocess.call(['open', directory], timeout=timeout)
@@ -66,6 +75,7 @@ __all__ = [
     'is_windows',
     'is_macos',
     'is_linux',
+    'is_android',
     'open_file',
     'open_directory',
     'is_text_file',
