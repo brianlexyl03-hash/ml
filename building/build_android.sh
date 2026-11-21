@@ -271,3 +271,15 @@ fi
 mkdir -p "$ROOT_DIR/artifacts"
 cp "$APK_PATH" "$ROOT_DIR/artifacts/SciHubEVA-android-arm64-debug.apk"
 echo "APK created: artifacts/SciHubEVA-android-arm64-debug.apk"
+echo "Building the Play Store Android App Bundle (unsigned until upload-key signing)..."
+if python -m buildozer android release; then
+    AAB_PATH="$(find "$ROOT_DIR/bin" -type f -name '*.aab' -print -quit)"
+    if [[ -n "$AAB_PATH" ]]; then
+        cp "$AAB_PATH" "$ROOT_DIR/artifacts/EVA-android-arm64-unsigned.aab"
+        echo "AAB created: artifacts/EVA-android-arm64-unsigned.aab"
+    else
+        echo "Buildozer release completed without an AAB; APK remains available." >&2
+    fi
+else
+    echo "AAB build failed; preserving the successful debug APK." >&2
+fi
