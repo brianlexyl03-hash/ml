@@ -226,9 +226,6 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 Layout.preferredHeight: mobileLayout ? 58 : -1
 
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-
                 Layout.minimumWidth: mobileLayout ? 0 : 140
                 Layout.maximumWidth: mobileLayout ? 360 : 160
 
