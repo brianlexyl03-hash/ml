@@ -48,7 +48,8 @@ jobs:
           sudo apt-get install -y \
             autoconf automake build-essential ccache cmake git \
             libdouble-conversion3 libffi-dev libltdl-dev libncurses-dev \
-            libssl-dev libtool pkg-config unzip zip zlib1g-dev
+            libssl-dev libtool pkg-config rustc cargo autopoint gettext \
+            unzip zip zlib1g-dev
 
       - name: Build Android APK
         run: |
