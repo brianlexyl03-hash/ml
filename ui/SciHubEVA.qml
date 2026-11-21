@@ -240,8 +240,8 @@ ApplicationWindow {
             TextField {
                 id: textFieldSaveToDir
 
-                implicitWidth: 300
-                Layout.minimumWidth: 300
+                implicitWidth: mobileLayout ? 0 : 300
+                Layout.minimumWidth: mobileLayout ? 0 : 300
                 Layout.fillWidth: true
 
                 readOnly: true
