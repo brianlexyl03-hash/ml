@@ -60,6 +60,15 @@ if [[ -z "$NDK_PATH" || -z "$SDK_PLATFORM_TOOLS" ]]; then
 fi
 SDK_PATH="$(dirname "$SDK_PLATFORM_TOOLS")"
 
+echo "Installing the Qt Android deployment tool requirements..."
+PYSIDE_ANDROID_REQUIREMENTS="$(python - <<'PY'
+from pathlib import Path
+import PySide6
+print(Path(PySide6.__file__).parent / "scripts" / "requirements-android.txt")
+PY
+)"
+python -m pip install -r "$PYSIDE_ANDROID_REQUIREMENTS"
+
 echo "Generating the Qt deployment recipes and Buildozer configuration..."
 pyside6-android-deploy --init \
     --name SciHubEVA \
