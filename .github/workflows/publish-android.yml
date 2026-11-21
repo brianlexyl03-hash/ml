@@ -24,16 +24,27 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Verify APK and create checksum
+      - name: Verify APK, collect optional AAB, and create checksums
+        id: assets
         shell: bash
         run: |
           set -euo pipefail
           APK="release-assets/SciHubEVA-android-arm64-debug.apk"
           test -s "$APK"
           mv "$APK" release-assets/EVA-android-arm64.apk
-          sha256sum release-assets/EVA-android-arm64.apk > release-assets/SHA256SUMS.txt
+          ASSETS="release-assets/EVA-android-arm64.apk"
+          if [[ -s release-assets/EVA-android-arm64-unsigned.aab ]]; then
+            ASSETS="$ASSETS release-assets/EVA-android-arm64-unsigned.aab"
+          fi
+          sha256sum $ASSETS > release-assets/SHA256SUMS.txt
+          {
+            echo "files<<EOF"
+            printf '%s\\n' $ASSETS
+            echo "release-assets/SHA256SUMS.txt"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Publish stable direct-download release asset
+      - name: Publish stable direct-download release assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: android-latest
@@ -43,6 +54,4 @@ jobs:
           make_latest: false
           fail_on_unmatched_files: true
           overwrite_files: true
-          files: |
-            release-assets/EVA-android-arm64.apk
-            release-assets/SHA256SUMS.txt
+          files: ${{ steps.assets.outputs.files }}
