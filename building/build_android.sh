@@ -60,6 +60,67 @@ if [[ -z "$NDK_PATH" || -z "$SDK_PLATFORM_TOOLS" ]]; then
 fi
 SDK_PATH="$(dirname "$SDK_PLATFORM_TOOLS")"
 
+echo "Stripping native debug symbols from the Android wheels to reduce APK size..."
+LLVM_STRIP="$(find "$NDK_PATH/toolchains/llvm/prebuilt" -type f -name llvm-strip -print -quit)"
+if [[ -z "$LLVM_STRIP" ]]; then
+    echo "Could not locate the NDK llvm-strip utility." >&2
+    exit 1
+fi
+python - "$LLVM_STRIP" "$PYSIDE_WHEEL" "$SHIBOKEN_WHEEL" <<'PY'
+import base64
+import csv
+import hashlib
+import io
+import subprocess
+import sys
+import tempfile
+import zipfile
+from pathlib import Path
+
+strip_tool, *wheel_paths = sys.argv[1:]
+
+for wheel_path in wheel_paths:
+    wheel = Path(wheel_path)
+    with tempfile.TemporaryDirectory(prefix="eva-wheel-") as temporary:
+        root = Path(temporary)
+        with zipfile.ZipFile(wheel) as archive:
+            archive.extractall(root)
+
+        stripped = 0
+        for native_library in root.rglob("*.so"):
+            subprocess.run(
+                [strip_tool, "--strip-unneeded", str(native_library)],
+                check=True,
+                stdout=subprocess.DEVNULL,
+            )
+            stripped += 1
+
+        record_path = next(root.glob("*.dist-info/RECORD"))
+        rows = []
+        for file_path in sorted(root.rglob("*")):
+            if not file_path.is_file():
+                continue
+            relative = file_path.relative_to(root).as_posix()
+            if file_path == record_path:
+                rows.append((relative, "", ""))
+                continue
+            digest = base64.urlsafe_b64encode(
+                hashlib.sha256(file_path.read_bytes()).digest()
+            ).decode("ascii").rstrip("=")
+            rows.append((relative, "sha256=" + digest, str(file_path.stat().st_size)))
+
+        with record_path.open("w", encoding="utf-8", newline="") as record_file:
+            csv.writer(record_file, lineterminator="\\n").writerows(rows)
+
+        rebuilt = wheel.with_suffix(".stripped.whl")
+        with zipfile.ZipFile(rebuilt, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
+            for file_path in sorted(root.rglob("*")):
+                if file_path.is_file():
+                    archive.write(file_path, file_path.relative_to(root).as_posix())
+        rebuilt.replace(wheel)
+        print(f"Stripped {stripped} native libraries in {wheel.name}")
+PY
+
 echo "Installing the Qt Android deployment tool requirements..."
 PYSIDE_ANDROID_REQUIREMENTS="$(python - <<'PY'
 from pathlib import Path
