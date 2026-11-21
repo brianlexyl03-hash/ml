@@ -108,7 +108,7 @@ class SciHubAPI(QObject, threading.Thread):
         return self._sess.post(
             self._scihub_url,
             data={'request': query},
-            verify=False,
+            verify=True,
             timeout=Preferences.get_or_default(
                 NETWORK_TIMEOUT_KEY, NETWORK_TIMEOUT_DEFAULT, value_type=int
             )
@@ -183,11 +183,6 @@ class SciHubAPI(QObject, threading.Thread):
                             self.tr('Downloading is blocked by DDoS-Guard!')
                         )
                         self._logger.error(self.tr('You need to change a clean IP.'))
-                        self._logger.error(
-                            self.tr(
-                                'Or use <a href="https://github.com/FlareSolverr/FlareSolverr">FlareSolverr</a> to bypass it.'
-                            )
-                        )
                     else:
                         err = SciHubAPIError.UNKNOWN
                         self._logger.error(
@@ -271,7 +266,7 @@ class SciHubAPI(QObject, threading.Thread):
         pdf_response = self._sess.post(
             pdf_captcha_response.url,
             data={'answer': self._captcha_answer, 'id': captcha_id},
-            verify=False,
+            verify=True,
             timeout=Preferences.get_or_default(
                 NETWORK_TIMEOUT_KEY, NETWORK_RETRY_TIMES_DEFAULT, value_type=int
             )
@@ -299,7 +294,7 @@ class SciHubAPI(QObject, threading.Thread):
         try:
             pdf_response = self._sess.get(
                 pdf_url,
-                verify=False,
+                verify=True,
                 timeout=Preferences.get_or_default(
                     NETWORK_TIMEOUT_KEY, NETWORK_RETRY_TIMES_DEFAULT, value_type=int
                 )
