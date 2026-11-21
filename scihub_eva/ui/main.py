@@ -31,10 +31,12 @@ from scihub_eva.utils.preferences_utils import Preferences
 from scihub_eva.utils.sys_utils import (
     PYTHON_VERSION,
     QT_VERSION,
+    copy_content_uri_to_temp_file,
     is_android,
     is_text_file,
     open_directory,
     open_file,
+    write_text_file,
 )
 from scihub_eva.utils.ui_utils import center_window
 
@@ -143,6 +145,13 @@ class UISciHubEVA(QObject):
 
     @Slot(str)
     def rampage(self, raw_query: str) -> None:
+        try:
+            raw_query = copy_content_uri_to_temp_file(raw_query)
+        except OSError as error:
+            self._logger.error(self.tr('Could not read the selected file: ') + str(error))
+            self.after_rampage.emit()
+            return
+
         scihub_url = Preferences.get_or_default(
             API_SCIHUB_URL_KEY, API_SCIHUB_URL_DEFAULT
         )
