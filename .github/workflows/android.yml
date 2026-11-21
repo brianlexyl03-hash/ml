@@ -60,6 +60,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SciHubEVA-android-arm64-debug
-          path: artifacts/SciHubEVA-android-arm64-debug.apk
-          if-no-files-found: error
+          path: |
+            artifacts/SciHubEVA-android-arm64-debug.apk
+            artifacts/EVA-android-arm64-unsigned.aab
+          if-no-files-found: warn
           retention-days: 14
