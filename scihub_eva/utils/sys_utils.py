@@ -4,8 +4,9 @@ import platform
 import subprocess
 import sys
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
-from PySide6.QtCore import QUrl, qVersion
+from PySide6.QtCore import QFile, QIODevice, QUrl, qVersion
 from PySide6.QtGui import QDesktopServices
 
 DEFAULT_ENCODING = 'utf-8'
@@ -57,6 +58,44 @@ def open_directory(directory: str, timeout: int = 3) -> None:
         return
 
 
+def copy_content_uri_to_temp_file(uri: str) -> str:
+    """Copy a user-selected Android document URI into app-readable temp storage."""
+    if not is_android() or not uri.startswith('content://'):
+        return uri
+
+    source = QFile(uri)
+    if not source.open(QIODevice.OpenModeFlag.ReadOnly):
+        raise OSError(source.errorString())
+
+    try:
+        contents = bytes(source.readAll())
+    finally:
+        source.close()
+
+    with NamedTemporaryFile(mode='wb', suffix='.txt', delete=False) as temp_file:
+        temp_file.write(contents)
+        return temp_file.name
+
+
+def write_text_file(path: str, contents: str) -> None:
+    """Write text to a local path or an Android Storage Access Framework URI."""
+    if is_android() and path.startswith('content://'):
+        target = QFile(path)
+        mode = QIODevice.OpenModeFlag.WriteOnly | QIODevice.OpenModeFlag.Truncate
+        if not target.open(mode):
+            raise OSError(target.errorString())
+        try:
+            written = target.write(contents.encode('utf-8'))
+            if written < 0:
+                raise OSError(target.errorString())
+        finally:
+            target.close()
+        return
+
+    with open(path, 'wt', encoding='utf-8') as output_file:
+        output_file.write(contents)
+
+
 def is_text_file(path: str) -> bool:
     try:
         with open(path, 'rt') as f:
@@ -76,6 +115,8 @@ __all__ = [
     'is_macos',
     'is_linux',
     'is_android',
+    'copy_content_uri_to_temp_file',
+    'write_text_file',
     'open_file',
     'open_directory',
     'is_text_file',
