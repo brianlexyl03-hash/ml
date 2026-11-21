@@ -23,7 +23,6 @@ subprocess.check_call([
     sys.executable, "-m", "pip", "install",
     *dependencies,
     "opencc-python-reimplemented==0.1.7",
-    "qtpip",
 ])
 PY
 python -m compileall -q app.py main.py scihub_eva
@@ -32,20 +31,15 @@ pyside6-lrelease i18n/SciHubEVA_*.ts
 # Qt for Android is built without zstd resource support.
 pyside6-rcc --no-compress SciHubEVA.qrc -o scihub_eva/resources.py
 
-echo "Downloading matching PySide6 and Shiboken6 Android ARM64 wheels..."
+echo "Downloading the official Qt for Python Android ARM64 wheels..."
 mkdir -p "$WHEEL_DIR"
-(
-    cd "$WHEEL_DIR"
-    qtpip download PySide6 --android --arch aarch64
-    qtpip download shiboken6 --android --arch aarch64
-)
-PYSIDE_WHEEL="$(find "$WHEEL_DIR" -type f -iname 'PySide6-*-android_aarch64.whl' -print -quit)"
-SHIBOKEN_WHEEL="$(find "$WHEEL_DIR" -type f -iname 'shiboken6-*-android_aarch64.whl' -print -quit)"
-if [[ -z "$PYSIDE_WHEEL" || -z "$SHIBOKEN_WHEEL" ]]; then
-    echo "Could not locate the matching PySide6/Shiboken6 Android wheels." >&2
-    find "$WHEEL_DIR" -type f -print >&2
-    exit 1
-fi
+PYSIDE_WHEEL="$WHEEL_DIR/pyside6-6.12.0-6.12.0-cp310-abi3-android_aarch64.whl"
+SHIBOKEN_WHEEL="$WHEEL_DIR/shiboken6-6.12.0-6.12.0-cp310-abi3-android_aarch64.whl"
+curl --fail --location --retry 3 --output "$PYSIDE_WHEEL" \
+    "https://download.qt.io/official_releases/QtForPython/pyside6/pyside6-6.12.0-6.12.0-cp310-abi3-android_aarch64.whl"
+curl --fail --location --retry 3 --output "$SHIBOKEN_WHEEL" \
+    "https://download.qt.io/official_releases/QtForPython/shiboken6/shiboken6-6.12.0-6.12.0-cp310-abi3-android_aarch64.whl"
+
 
 echo "Preparing the official Qt Android SDK/NDK toolchain..."
 if [[ ! -d "$CACHE_DIR" ]] || [[ -z "$(find "$CACHE_DIR" -type d -name 'android-ndk-r28c' -print -quit)" ]]; then
