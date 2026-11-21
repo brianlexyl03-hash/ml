@@ -21,12 +21,13 @@ mkdir -p "$WHEEL_DIR"
 (
     cd "$WHEEL_DIR"
     qtpip download PySide6 --android --arch aarch64
+    qtpip download shiboken6 --android --arch aarch64
 )
-PYSIDE_WHEEL="$(find "$WHEEL_DIR" -maxdepth 1 -type f -iname 'PySide6-*-android_aarch64.whl' -print -quit)"
+PYSIDE_WHEEL="$(find "$WHEEL_DIR" -type f -iname 'PySide6-*-android_aarch64.whl' -print -quit)"
 SHIBOKEN_WHEEL="$(find "$WHEEL_DIR" -maxdepth 1 -type f -iname 'shiboken6-*-android_aarch64.whl' -print -quit)"
 if [[ -z "$PYSIDE_WHEEL" || -z "$SHIBOKEN_WHEEL" ]]; then
     echo "Could not locate the matching PySide6/Shiboken6 Android wheels." >&2
-    find "$WHEEL_DIR" -maxdepth 1 -type f -print >&2
+    find "$WHEEL_DIR" -type f -print >&2
     exit 1
 fi
 
