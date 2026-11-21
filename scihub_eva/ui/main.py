@@ -50,22 +50,31 @@ class UISciHubEVA(QObject):
     def __init__(self) -> None:
         super(UISciHubEVA, self).__init__()
 
+        self._logger = DEFAULT_LOGGER
+        self._qml_warnings: list[str] = []
+
         self._engine = QQmlApplicationEngine()
+        self._engine.warnings.connect(self._record_qml_warnings)
         self._engine.rootContext().setContextProperty(
             'APPLICATION_VERSION', APPLICATION_VERSION
         )
         self._engine.rootContext().setContextProperty('PYTHON_VERSION', PYTHON_VERSION)
         self._engine.rootContext().setContextProperty('QT_VERSION', QT_VERSION)
         self._engine.load('qrc:/ui/SciHubEVA.qml')
-        self._window = self._engine.rootObjects()[0]
+        root_objects = self._engine.rootObjects()
+        if not root_objects:
+            details = '\\n'.join(self._qml_warnings) or 'No QML root object was created.'
+            raise RuntimeError(f'Could not load the main EVA screen:\\n{details}')
+        self._window = root_objects[0]
 
-        self._logger = DEFAULT_LOGGER
         self._logger.addHandler(UISciHubEVALogHandler(self))
 
         self._connect()
 
-        self._ui_preferences = UIPreferences(self)
-        self._ui_captcha = UICaptcha(self, self._logger)
+        # Load secondary QML windows only when the user opens them. This keeps
+        # startup independent from optional settings and CAPTCHA dialogs.
+        self._ui_preferences: UIPreferences | None = None
+        self._ui_captcha: UICaptcha | None = None
 
         self._query_list = deque()
         self._query_list_length = 0
@@ -92,6 +101,12 @@ class UISciHubEVA(QObject):
             self._scihub_url,
             self._sess,
         )
+
+    def _record_qml_warnings(self, warnings: list[Any]) -> None:
+        for warning in warnings:
+            message = warning.toString() if hasattr(warning, 'toString') else str(warning)
+            self._qml_warnings.append(message)
+            self._logger.error('QML: ' + message)
 
     @property
     def window(self) -> QWindow:
@@ -123,9 +138,14 @@ class UISciHubEVA(QObject):
 
     @Slot()
     def show_ui_preference(self) -> None:
-        self._ui_preferences.load_preferences()
-        self._ui_preferences.show.emit()
-        center_window(self._ui_preferences.window, self.window)
+        try:
+            if self._ui_preferences is None:
+                self._ui_preferences = UIPreferences(self)
+            self._ui_preferences.load_preferences()
+            self._ui_preferences.show.emit()
+            center_window(self._ui_preferences.window, self.window)
+        except Exception:
+            self._logger.exception('Could not open EVA preferences.')
 
     @Slot()
     def system_open_log_file(self) -> None:
@@ -252,8 +272,14 @@ class UISciHubEVA(QObject):
         self._captcha_img_file_path = captcha_img_file_path.resolve().as_posix()
         captcha_img_local_uri = captcha_img_file_path.as_uri()
 
-        self._ui_captcha.show_ui_captcha.emit(captcha_img_local_uri)
-        center_window(self._ui_captcha.window, self.window)
+        try:
+            if self._ui_captcha is None:
+                self._ui_captcha = UICaptcha(self, self._logger)
+            self._ui_captcha.show_ui_captcha.emit(captcha_img_local_uri)
+            center_window(self._ui_captcha.window, self.window)
+        except Exception:
+            self._logger.exception('Could not open the CAPTCHA window.')
+            self.after_rampage.emit()
 
     def remove_captcha_img(self) -> None:
         if os.path.exists(self._captcha_img_file_path) and os.path.isfile(
