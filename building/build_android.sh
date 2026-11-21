@@ -217,7 +217,7 @@ python - <<'PY'
 from pathlib import Path
 
 p4a_root = Path(".buildozer/android/platform/python-for-android")
-recipe_dir = p4a_root / "pythonforandroid/recipes/pdfminer.six"
+recipe_dir = Path("deployment/recipes/pdfminer.six")
 recipe_dir.mkdir(parents=True, exist_ok=True)
 recipe = """from pythonforandroid.recipe import PythonRecipe
 
