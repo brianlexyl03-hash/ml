@@ -235,15 +235,11 @@ class PdfminerSixRecipe(PythonRecipe):
 
 recipe = PdfminerSixRecipe()
 """
-# Use the canonical PyPI source archive URL; keep this local recipe deterministic.
-recipe = recipe.replace(
-    "34/a4/5cec1112009f0439f0439a5ca6afa8ace321f0ab2f48da3255b7a1c8953014670",
-    "34/a4/5cec1112009f0439f0439a5ca6afa8ace321f0ab2f48da3255b7a1c8953014670",
-)
 (recipe_dir / "__init__.py").write_text(recipe, encoding="utf-8")
 print(f"Installed local recipe: {recipe_dir}")
 PY
 
+rm -rf "$ROOT_DIR/.buildozer/android/platform/build-arm64-v8a/dists/scihubeva"
 python -m buildozer android update
 
 echo "Patching Qt bootstrap library order so QtCore initializes before QtQuick..."
