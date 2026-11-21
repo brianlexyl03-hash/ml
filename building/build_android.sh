@@ -61,7 +61,7 @@ fi
 SDK_PATH="$(dirname "$SDK_PLATFORM_TOOLS")"
 
 echo "Stripping native debug symbols from the Android wheels to reduce APK size..."
-LLVM_STRIP="$(find "$NDK_PATH/toolchains/llvm/prebuilt" -type f -name llvm-strip -print -quit)"
+LLVM_STRIP="$(find "$NDK_PATH/toolchains/llvm/prebuilt" -name llvm-strip -print -quit)"
 if [[ -z "$LLVM_STRIP" ]]; then
     echo "Could not locate the NDK llvm-strip utility." >&2
     exit 1
