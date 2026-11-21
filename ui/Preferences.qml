@@ -18,11 +18,12 @@ ApplicationWindow {
     flags: Qt.Dialog
 
     property int margin: 10
+    property bool mobileLayout: Qt.platform.os === "android"
 
-    width: columnLayoutPreferences.implicitWidth + 2 * margin
-    height: columnLayoutPreferences.implicitHeight + 2 * margin
-    minimumWidth: columnLayoutPreferences.Layout.minimumWidth + 2 * margin
-    minimumHeight: columnLayoutPreferences.Layout.minimumHeight + 2 * margin
+    width: mobileLayout ? 360 : columnLayoutPreferences.implicitWidth + 2 * margin
+    height: mobileLayout ? 640 : columnLayoutPreferences.implicitHeight + 2 * margin
+    minimumWidth: mobileLayout ? 320 : columnLayoutPreferences.Layout.minimumWidth + 2 * margin
+    minimumHeight: mobileLayout ? 480 : columnLayoutPreferences.Layout.minimumHeight + 2 * margin
 
     signal showUIAddSciHubURL()
     signal removeSciHubURL(int sciHubURLCurrentIndex)
@@ -213,18 +214,23 @@ ApplicationWindow {
         Layout.fillHeight: true
         Layout.fillWidth: true
 
-        RowLayout {
+        GridLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
+            columns: mobileLayout ? 1 : 3
+            rows: mobileLayout ? 3 : 1
 
             ColumnLayout {
                 id: columnLayoutPreferenceList
+                Layout.fillHeight: !mobileLayout
+                Layout.fillWidth: true
+                Layout.preferredHeight: mobileLayout ? 58 : -1
 
                 Layout.fillHeight: true
                 Layout.fillWidth: true
 
-                Layout.minimumWidth: 140
-                Layout.maximumWidth: 160
+                Layout.minimumWidth: mobileLayout ? 0 : 140
+                Layout.maximumWidth: mobileLayout ? 360 : 160
 
                 ListModel {
                     id: listModelPreferencesTools
@@ -254,7 +260,8 @@ ApplicationWindow {
                     id: itemDelegatePreferencesTools
 
                     UIElements.ItemDelegate {
-                        width: parent.width
+                        width: mobileLayout ? 112 : parent.width
+                        height: mobileLayout ? 52 : implicitHeight
 
                         onClicked: {
                             listViewPreferencesTools.currentIndex = index
@@ -267,7 +274,9 @@ ApplicationWindow {
                     id: listViewPreferencesTools
 
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    Layout.fillHeight: !mobileLayout
+                    Layout.preferredHeight: mobileLayout ? 54 : -1
+                    orientation: mobileLayout ? ListView.Horizontal : ListView.Vertical
 
                     model: listModelPreferencesTools
                     delegate: itemDelegatePreferencesTools
@@ -280,12 +289,14 @@ ApplicationWindow {
             }
 
             ToolSeparator {
+                orientation: mobileLayout ? Qt.Horizontal : Qt.Vertical
                 rightPadding: 3
                 leftPadding: 3
                 bottomPadding: 0
                 topPadding: 0
 
-                Layout.fillHeight: true
+                Layout.fillHeight: !mobileLayout
+                Layout.fillWidth: mobileLayout
             }
 
             StackLayout {
@@ -296,8 +307,8 @@ ApplicationWindow {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
 
-                Layout.minimumWidth: 500
-                Layout.minimumHeight: 400
+                Layout.minimumWidth: mobileLayout ? 0 : 500
+                Layout.minimumHeight: mobileLayout ? 300 : 400
 
                 Item {
                     id: itemPreferencesApi
