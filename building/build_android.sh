@@ -60,6 +60,15 @@ if [[ -z "$NDK_PATH" || -z "$SDK_PLATFORM_TOOLS" ]]; then
 fi
 SDK_PATH="$(dirname "$SDK_PLATFORM_TOOLS")"
 
+echo "Installing Android 16 SDK platform required for Google Play submissions..."
+SDKMANAGER="$(find "$SDK_PATH/cmdline-tools" -type f -name sdkmanager -print -quit)"
+if [[ -z "$SDKMANAGER" ]]; then
+    echo "Could not locate Android sdkmanager." >&2
+    exit 1
+fi
+yes | "$SDKMANAGER" --sdk_root="$SDK_PATH" --licenses >/dev/null
+"$SDKMANAGER" --sdk_root="$SDK_PATH" "platforms;android-36"
+
 echo "Stripping native debug symbols from the Android wheels to reduce APK size..."
 LLVM_STRIP="$(find "$NDK_PATH/toolchains/llvm/prebuilt" -name llvm-strip -print -quit)"
 if [[ -z "$LLVM_STRIP" ]]; then
@@ -183,7 +192,7 @@ app["icon.filename"] = "images/SciHubEVA-icon.png"
 app["source.exclude_dirs"] = ".git,building,design,docs,tests,dist,artifacts,.github,deployment,bin,.buildozer"
 app["source.exclude_patterns"] = "scihub_eva/api/scihub_fake_server.py,*.pyc,*.pyo"
 app["android.permissions"] = "INTERNET"
-app["android.api"] = "35"
+app["android.api"] = "36"
 app["android.minapi"] = "28"
 app["android.archs"] = "arm64-v8a"
 app["android.accept_sdk_license"] = "True"
