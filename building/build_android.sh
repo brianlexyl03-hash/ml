@@ -70,7 +70,6 @@ python - "$LLVM_STRIP" "$PYSIDE_WHEEL" "$SHIBOKEN_WHEEL" <<'PY'
 import base64
 import csv
 import hashlib
-import io
 import subprocess
 import sys
 import tempfile
@@ -110,7 +109,7 @@ for wheel_path in wheel_paths:
             rows.append((relative, "sha256=" + digest, str(file_path.stat().st_size)))
 
         with record_path.open("w", encoding="utf-8", newline="") as record_file:
-            csv.writer(record_file, lineterminator="\\n").writerows(rows)
+            csv.writer(record_file, lineterminator="\n").writerows(rows)
 
         rebuilt = wheel.with_suffix(".stripped.whl")
         with zipfile.ZipFile(rebuilt, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
