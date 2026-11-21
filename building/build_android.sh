@@ -208,6 +208,42 @@ PY
 echo "Preparing the Qt Android bootstrap before compiling..."
 export VIRTUAL_ENV="${VIRTUAL_ENV:-$(python -c 'import sys; print(sys.prefix)')}"
 export PATH="$(dirname "$(command -v python)"):$PATH"
+if ! python -m buildozer android update; then
+    echo "The first distribution pass exposed a pure-Python resolver limitation; adding a dedicated pdfminer recipe and retrying."
+fi
+
+echo "Adding a pure-Python pdfminer.six recipe to avoid its Android pip resolver conflict..."
+python - <<'PY'
+from pathlib import Path
+
+p4a_root = Path(".buildozer/android/platform/python-for-android")
+recipe_dir = p4a_root / "pythonforandroid/recipes/pdfminer.six"
+recipe_dir.mkdir(parents=True, exist_ok=True)
+recipe = """from pythonforandroid.recipe import PythonRecipe
+
+
+class PdfminerSixRecipe(PythonRecipe):
+    name = "pdfminer.six"
+    version = "20260107"
+    url = "https://files.pythonhosted.org/packages/34/a4/5cec1112009f0439f0439a5ca6afa8ace321f0ab2f48da3255b7a1c8953014670/pdfminer_six-20260107.tar.gz"
+    depends = ["python3"]
+    python_depends = ["charset-normalizer"]
+    site_packages_name = "pdfminer"
+    hostpython_prerequisites = ["setuptools", "setuptools-scm"]
+    setup_extra_args = ["--no-deps", "--no-build-isolation"]
+
+
+recipe = PdfminerSixRecipe()
+"""
+# Use the canonical PyPI source archive URL; keep this local recipe deterministic.
+recipe = recipe.replace(
+    "34/a4/5cec1112009f0439f0439a5ca6afa8ace321f0ab2f48da3255b7a1c8953014670",
+    "34/a4/5cec1112009f0439f0439a5ca6afa8ace321f0ab2f48da3255b7a1c8953014670",
+)
+(recipe_dir / "__init__.py").write_text(recipe, encoding="utf-8")
+print(f"Installed local recipe: {recipe_dir}")
+PY
+
 python -m buildozer android update
 
 echo "Patching Qt bootstrap library order so QtCore initializes before QtQuick..."
