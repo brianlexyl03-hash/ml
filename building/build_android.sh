@@ -66,7 +66,6 @@ if [[ -z "$SDKMANAGER" ]]; then
     echo "Could not locate Android sdkmanager." >&2
     exit 1
 fi
-yes | "$SDKMANAGER" --sdk_root="$SDK_PATH" --licenses >/dev/null
 "$SDKMANAGER" --sdk_root="$SDK_PATH" "platforms;android-36"
 
 echo "Stripping native debug symbols from the Android wheels to reduce APK size..."
