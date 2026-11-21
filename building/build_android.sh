@@ -38,7 +38,7 @@ mkdir -p "$WHEEL_DIR"
     qtpip download shiboken6 --android --arch aarch64
 )
 PYSIDE_WHEEL="$(find "$WHEEL_DIR" -type f -iname 'PySide6-*-android_aarch64.whl' -print -quit)"
-SHIBOKEN_WHEEL="$(find "$WHEEL_DIR" -maxdepth 1 -type f -iname 'shiboken6-*-android_aarch64.whl' -print -quit)"
+SHIBOKEN_WHEEL="$(find "$WHEEL_DIR" -type f -iname 'shiboken6-*-android_aarch64.whl' -print -quit)"
 if [[ -z "$PYSIDE_WHEEL" || -z "$SHIBOKEN_WHEEL" ]]; then
     echo "Could not locate the matching PySide6/Shiboken6 Android wheels." >&2
     find "$WHEEL_DIR" -type f -print >&2
@@ -46,7 +46,7 @@ if [[ -z "$PYSIDE_WHEEL" || -z "$SHIBOKEN_WHEEL" ]]; then
 fi
 
 echo "Preparing the official Qt Android SDK/NDK toolchain..."
-if [[ ! -d "$CACHE_DIR" ]]; then
+if [[ ! -d "$CACHE_DIR" ]] || [[ -z "$(find "$CACHE_DIR" -type d -name 'android-ndk-r28c' -print -quit)" ]]; then
     git clone --depth 1 --branch 6.12 https://code.qt.io/pyside/pyside-setup "$TOOLCHAIN_DIR"
     python "$TOOLCHAIN_DIR/tools/cross_compile_android/main.py" \
         --download-only --skip-update --auto-accept-license
