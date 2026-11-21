@@ -228,7 +228,7 @@ ApplicationWindow {
             }
 
             Label {
-                text: qsTr("Save to: ")
+                text: mobileLayout ? qsTr("App storage: ") : qsTr("Save to: ")
 
                 Layout.minimumWidth: 60
             }
@@ -246,6 +246,7 @@ ApplicationWindow {
 
             Button {
                 id: buttonOpenSaveToDir
+                visible: !mobileLayout
                 text: qsTr("Open")
 
                 font.bold: false
@@ -258,7 +259,7 @@ ApplicationWindow {
 
             Button {
                 id: buttonShowSaveToDir
-                text: qsTr("Show")
+                text: mobileLayout ? qsTr("Open downloads") : qsTr("Show")
 
                 font.bold: false
                 Layout.minimumWidth: implicitWidth
