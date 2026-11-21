@@ -26,8 +26,10 @@ def center_window(window: QWindow, parent_window: QWindow) -> None:
 
 
 def is_system_dark_theme() -> bool:
+    if darkdetect is None:
+        return False
     try:
-        return darkdetect.isDark() or False if darkdetect is not None else False
+        return darkdetect.isDark() or False
     except Exception:
         # Desktop theme probes are not available on every Android device.
         return False
