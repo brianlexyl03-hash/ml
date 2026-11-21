@@ -79,13 +79,15 @@ ApplicationWindow {
         onAccepted: {
             var queryListURI = fileDialogQueryList.file.toString()
 
-            switch (Qt.platform.os) {
-            case "windows":
-                queryListURI = queryListURI.replace(/^(file:\/{3})/, "")
-                break
-            default:
-                queryListURI = queryListURI.replace(/^(file:\/{2})/, "")
-                break
+            if (Qt.platform.os !== "android") {
+                switch (Qt.platform.os) {
+                case "windows":
+                    queryListURI = queryListURI.replace(/^(file:\/{3})/, "")
+                    break
+                default:
+                    queryListURI = queryListURI.replace(/^(file:\/{2})/, "")
+                    break
+                }
             }
 
             textFieldQuery.text = queryListURI
@@ -123,13 +125,15 @@ ApplicationWindow {
         onAccepted: {
             var failedQueriesURI = fileDialogExportFailedQueries.file.toString()
 
-            switch (Qt.platform.os) {
-            case "windows":
-                failedQueriesURI = failedQueriesURI.replace(/^(file:\/{3})/, "")
-                break
-            default:
-                failedQueriesURI = failedQueriesURI.replace(/^(file:\/{2})/, "")
-                break
+            if (Qt.platform.os !== "android") {
+                switch (Qt.platform.os) {
+                case "windows":
+                    failedQueriesURI = failedQueriesURI.replace(/^(file:\/{3})/, "")
+                    break
+                default:
+                    failedQueriesURI = failedQueriesURI.replace(/^(file:\/{2})/, "")
+                    break
+                }
             }
 
             exportFailedQueries(failedQueriesURI)
