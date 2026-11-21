@@ -13,11 +13,12 @@ ApplicationWindow {
 
     property int margin: 10
     property bool kill: false
+    property bool mobileLayout: Qt.platform.os === "android"
 
-    width: columnLayoutCaptcha.implicitWidth + 2 * margin
-    height: columnLayoutCaptcha.implicitHeight + 2 * margin
-    minimumWidth: columnLayoutCaptcha.Layout.minimumWidth + 2 * margin
-    minimumHeight: columnLayoutCaptcha.Layout.minimumHeight + 2 * margin
+    width: mobileLayout ? 340 : columnLayoutCaptcha.implicitWidth + 2 * margin
+    height: mobileLayout ? 300 : columnLayoutCaptcha.implicitHeight + 2 * margin
+    minimumWidth: mobileLayout ? 300 : columnLayoutCaptcha.Layout.minimumWidth + 2 * margin
+    minimumHeight: mobileLayout ? 260 : columnLayoutCaptcha.Layout.minimumHeight + 2 * margin
 
     signal killCaptcha(bool kill, string captcha)
 
@@ -38,9 +39,15 @@ ApplicationWindow {
 
         Image {
             id: imageCaptcha
+            Layout.alignment: Qt.AlignHCenter
+            Layout.maximumWidth: mobileLayout ? 300 : implicitWidth
+            Layout.maximumHeight: mobileLayout ? 180 : implicitHeight
+            fillMode: Image.PreserveAspectFit
         }
 
-        RowLayout {
+        GridLayout {
+            columns: mobileLayout ? 2 : 4
+            Layout.fillWidth: true
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
@@ -51,14 +58,10 @@ ApplicationWindow {
             TextField {
                 id: textFieldCaptcha
 
-                Layout.minimumWidth: 160
+                Layout.minimumWidth: mobileLayout ? 100 : 160
+                Layout.fillWidth: mobileLayout
 
                 selectByMouse: true
-            }
-
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
             }
 
             Button {
