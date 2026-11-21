@@ -48,7 +48,6 @@ ApplicationWindow {
         GridLayout {
             columns: mobileLayout ? 2 : 4
             Layout.fillWidth: true
-            Layout.fillWidth: true
             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
             Label {
