@@ -18,6 +18,10 @@ in place.
 - [x] Enable TLS certificate verification in the requests layer.
 - [x] Add an ARM64 Android build script and a GitHub Actions workflow that
   produces an APK artifact when the build succeeds.
+- [x] Patch the Qt Android loader to load QtCore before QtQuick so QtCore's
+  `JNI_OnLoad` caches the JavaVM before QtQuick requests a JNI environment.
+- [x] Publish successful APK builds as a stable GitHub Release download with
+  SHA-256 checksums.
 
 ## Not yet verified
 
@@ -30,6 +34,8 @@ in place.
 - [ ] Verify rotation, keyboard behavior, touch targets, and Android file
   provider behavior on the target device.
 - [ ] Produce and test a signed release APK.
+- [ ] Install and launch the QtCore-first build on the Redmi Android 16 device.
+- [ ] Produce a signed Play Store AAB and complete Google Play policy review.
 
 ## Build setup
 
@@ -50,7 +56,15 @@ Run the build on Linux with:
 ```
 
 Or run the **Android ARM64 APK** workflow from GitHub Actions. A successful
-workflow uploads `SciHubEVA-android-arm64-debug.apk` as an artifact.
+workflow uploads the APK and, when the release build succeeds, an Android App
+Bundle. The APK is published at:
+
+`https://github.com/brianlexyl03-hash/ml/releases/download/android-latest/EVA-android-arm64.apk`
+
+For signed Play Store bundles, configure these repository Actions secrets:
+`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
+and `ANDROID_KEY_ALIAS_PASSWORD`. Without them, the workflow can produce an
+unsigned AAB for inspection, but it cannot be uploaded to Play Console.
 
 Qt's deployment tool requires a Unix build host, Python 3.10–3.14, a supported
 JDK, Android SDK/NDK, and matching Android PySide6/Shiboken wheels. Current Qt
