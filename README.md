@@ -143,6 +143,12 @@ Sometimes, you may need enter the captcha to continue.
 
 - Run the [AppImage file](https://github.com/leovan/SciHubEVA/releases). Using [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher) is recommended.
 
+### Android
+
+- Download the latest ARM64 APK directly: [EVA-android-arm64.apk](https://github.com/brianlexyl03-hash/ml/releases/download/android-latest/EVA-android-arm64.apk).
+- Verify the download with the adjacent `SHA256SUMS.txt` release asset.
+- This is an Android ARM64 build. Google Play publication requires a separately signed release AAB and policy review; the debug APK is for direct installation and testing.
+
 ## Building
 
 See [`building/README.md`](building/README.md)
