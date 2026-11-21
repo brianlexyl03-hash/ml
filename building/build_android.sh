@@ -228,22 +228,18 @@ if not candidates:
     )
 
 patched = 0
-needle = (
-    "ArrayList<String> nativeLibraries = getQtLibrariesList();\\n"
-    "        nativeLibraries.addAll(getLocalLibrariesList());"
-)
-replacement = (
-    "ArrayList<String> nativeLibraries = getQtLibrariesList();\\n"
-    "        // QtCore caches JavaVM in JNI_OnLoad. Load it before QtQuick and other modules.\\n"
-    "        for (int i = 0; i < nativeLibraries.size(); ++i) {\\n"
-    "            if (nativeLibraries.get(i).contains(\\"Qt6Core\\")) {\\n"
-    "                String qtCoreLibrary = nativeLibraries.remove(i);\\n"
-    "                nativeLibraries.add(0, qtCoreLibrary);\\n"
-    "                break;\\n"
-    "            }\\n"
-    "        }\\n"
-    "        nativeLibraries.addAll(getLocalLibrariesList());"
-)
+needle = """ArrayList<String> nativeLibraries = getQtLibrariesList();
+        nativeLibraries.addAll(getLocalLibrariesList());"""
+replacement = """ArrayList<String> nativeLibraries = getQtLibrariesList();
+        // QtCore caches JavaVM in JNI_OnLoad. Load it before QtQuick and other modules.
+        for (int i = 0; i < nativeLibraries.size(); ++i) {
+            if (nativeLibraries.get(i).contains("Qt6Core")) {
+                String qtCoreLibrary = nativeLibraries.remove(i);
+                nativeLibraries.add(0, qtCoreLibrary);
+                break;
+            }
+        }
+        nativeLibraries.addAll(getLocalLibrariesList());"""
 for path in candidates:
     source = path.read_text(encoding="utf-8")
     if "qtCoreLibrary = nativeLibraries.remove(i)" in source:
