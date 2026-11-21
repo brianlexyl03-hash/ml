@@ -182,7 +182,6 @@ class SciHubAPI(QObject, threading.Thread):
                         self._logger.error(
                             self.tr('Downloading is blocked by DDoS-Guard!')
                         )
-                        self._logger.error(self.tr('You need to change a clean IP.'))
                     else:
                         err = SciHubAPIError.UNKNOWN
                         self._logger.error(
