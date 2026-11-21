@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import darkdetect
 from PySide6.QtGui import QWindow
@@ -7,7 +8,6 @@ from scihub_eva.globals.preferences import (
     APPEARANCE_THEME_DEFAULT,
     APPEARANCE_THEME_KEY,
 )
-from scihub_eva.utils.path_utils import CONFS_DIR
 from scihub_eva.utils.preferences_utils import Preferences
 from scihub_eva.utils.sys_utils import is_linux, is_windows
 
@@ -38,7 +38,9 @@ def is_app_dark_theme() -> bool:
 
 
 def set_ui_env() -> None:
-    qtquickcontrols2_conf_path = CONFS_DIR / 'qtquickcontrols2.conf'
+    qtquickcontrols2_conf_path = (
+        Path(__file__).resolve().parents[2] / 'confs' / 'qtquickcontrols2.conf'
+    )
     if qtquickcontrols2_conf_path.resolve().exists():
         os.environ['QT_QUICK_CONTROLS_CONF'] = (
             qtquickcontrols2_conf_path.resolve().as_posix()
