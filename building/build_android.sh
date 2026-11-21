@@ -109,22 +109,18 @@ additional = [
     "lxml==6.0.2",
     "pdfminer.six==20260107",
     "pathvalidate==3.3.1",
-    "darkdetect==0.8.0",
-    "cryptography==50.0.2",
-    "cffi==2.1.1",
-    "pycparser==3.12",
 ]
 seen = {item.lower() for item in requirements}
 requirements.extend(item for item in additional if item.lower() not in seen)
 app["requirements"] = ",".join(requirements)
 
-app["title"] = "SciHubEVA"
+app["title"] = "EVA"
 app["package.name"] = "scihubeva"
 app["package.domain"] = "io.github.brianlexyl03hash"
 app["version"] = "6.5.1"
 app["orientation"] = "portrait"
 app["icon.filename"] = "images/SciHubEVA-icon.png"
-app["source.exclude_dirs"] = ".git,building,design,tests,dist,artifacts,.github,deployment,bin,.buildozer"
+app["source.exclude_dirs"] = ".git,building,design,docs,tests,dist,artifacts,.github,deployment,bin,.buildozer"
 app["android.permissions"] = "INTERNET"
 app["android.api"] = "35"
 app["android.minapi"] = "28"
@@ -132,6 +128,7 @@ app["android.archs"] = "arm64-v8a"
 app["android.accept_sdk_license"] = "True"
 app["android.skip_update"] = "True"
 app["android.allow_backup"] = "False"
+app["android.release_artifact"] = "false"
 
 with spec_path.open("w", encoding="utf-8") as output:
     spec.write(output)
