@@ -18,6 +18,7 @@ from scihub_eva.globals.versions import APPLICATION_VERSION
 from scihub_eva.ui.captcha import UICaptcha
 from scihub_eva.ui.preferences import UIPreferences
 from scihub_eva.utils.api_utils import gen_range_query_list, is_range_query
+from scihub_eva.utils.path_utils import APP_DATA_DIR
 from scihub_eva.utils.logging_utils import (
     DEFAULT_LOG_DIRECTORY,
     DEFAULT_LOG_FILE,
@@ -30,6 +31,7 @@ from scihub_eva.utils.preferences_utils import Preferences
 from scihub_eva.utils.sys_utils import (
     PYTHON_VERSION,
     QT_VERSION,
+    is_android,
     is_text_file,
     open_directory,
     open_file,
@@ -71,6 +73,11 @@ class UISciHubEVA(QObject):
         self._save_to_dir = Preferences.get_or_default(
             FILE_SAVE_TO_DIR_KEY, FILE_SAVE_TO_DIR_DEFAULT
         )
+        if is_android() and not self._save_to_dir:
+            android_download_dir = APP_DATA_DIR / 'Downloads'
+            android_download_dir.mkdir(parents=True, exist_ok=True)
+            self._save_to_dir = android_download_dir.as_posix()
+            Preferences.set(FILE_SAVE_TO_DIR_KEY, self._save_to_dir)
         self.set_save_to_dir.emit(self._save_to_dir)
 
         self._scihub_url = Preferences.get_or_default(
