@@ -271,7 +271,18 @@ fi
 mkdir -p "$ROOT_DIR/artifacts"
 cp "$APK_PATH" "$ROOT_DIR/artifacts/SciHubEVA-android-arm64-debug.apk"
 echo "APK created: artifacts/SciHubEVA-android-arm64-debug.apk"
-echo "Building the Play Store Android App Bundle (unsigned until upload-key signing)..."
+echo "Building the Play Store Android App Bundle..."
+if [[ -n "${ANDROID_KEYSTORE_BASE64:-}" ]]; then
+    KEYSTORE_PATH="$RUNNER_TMP/eva-upload-key.jks"
+    printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+    export P4A_RELEASE_KEYSTORE="$KEYSTORE_PATH"
+    export P4A_RELEASE_KEYSTORE_PASSWD="${ANDROID_KEYSTORE_PASSWORD:?Missing ANDROID_KEYSTORE_PASSWORD secret}"
+    export P4A_RELEASE_KEYALIAS="${ANDROID_KEY_ALIAS:?Missing ANDROID_KEY_ALIAS secret}"
+    export P4A_RELEASE_KEYALIAS_PASSWD="${ANDROID_KEY_ALIAS_PASSWORD:?Missing ANDROID_KEY_ALIAS_PASSWORD secret}"
+    echo "Using the configured Android upload key to sign the AAB."
+else
+    echo "No upload key configured; the AAB will be unsigned and cannot be uploaded to Play Console yet."
+fi
 if python -m buildozer android release; then
     AAB_PATH="$(find "$ROOT_DIR/bin" -type f -name '*.aab' -print -quit)"
     if [[ -n "$AAB_PATH" ]]; then
