@@ -11,7 +11,7 @@ import "./elements" as UIElements
 
 ApplicationWindow {
     id: applicationWindowSciHubEVA
-    title: "Sci-Hub EVA"
+    title: "EVA"
 
     modality: Qt.ApplicationModal
 
