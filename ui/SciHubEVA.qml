@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Controls.Material
+import QtQuick.Window
 import Qt.labs.settings
 import Qt.labs.platform as Platform
 
@@ -20,12 +21,12 @@ ApplicationWindow {
     property int theme: Material.theme
     property bool mobileLayout: Qt.platform.os === "android"
 
-    width: mobileLayout ? 360 : columnLayoutApplication.implicitWidth + 2 * margin
-    height: mobileLayout ? 640 : columnLayoutApplication.implicitHeight + 2 * margin
+    width: mobileLayout ? Screen.width : columnLayoutApplication.implicitWidth + 2 * margin
+    height: mobileLayout ? Screen.height : columnLayoutApplication.implicitHeight + 2 * margin
     minimumWidth: mobileLayout ? 320 : columnLayoutApplication.Layout.minimumWidth + 2 * margin
     minimumHeight: mobileLayout ? 480 : columnLayoutApplication.Layout.minimumHeight + 2 * margin
-    maximumWidth: mobileLayout ? 480 : columnLayoutApplication.Layout.maximumWidth + 2 * margin
-    maximumHeight: mobileLayout ? 900 : columnLayoutApplication.Layout.maximumHeight + 2 * margin
+    maximumWidth: mobileLayout ? Screen.width : columnLayoutApplication.Layout.maximumWidth + 2 * margin
+    maximumHeight: mobileLayout ? Screen.height : columnLayoutApplication.Layout.maximumHeight + 2 * margin
 
     signal openSaveToDir(string directory)
     signal systemOpenSaveToDir(string directory)
