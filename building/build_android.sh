@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNNER_TMP="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
-CACHE_DIR="$HOME/.pyside6-android-deploy"
+CACHE_DIR="$HOME/.pyside6_android_deploy"
 WHEEL_DIR="$RUNNER_TMP/scihubeva-android-wheels"
 TOOLCHAIN_DIR="$RUNNER_TMP/pyside-setup"
 
@@ -44,6 +44,9 @@ curl --fail --location --retry 3 --output "$SHIBOKEN_WHEEL" \
 echo "Preparing the official Qt Android SDK/NDK toolchain..."
 if [[ ! -d "$CACHE_DIR" ]] || [[ -z "$(find "$CACHE_DIR" -type d -name 'android-ndk-r28c' -print -quit)" ]]; then
     git clone --depth 1 --branch 6.12 https://code.qt.io/pyside/pyside-setup "$TOOLCHAIN_DIR"
+    python -m pip install \
+        -r "$TOOLCHAIN_DIR/requirements.txt" \
+        -r "$TOOLCHAIN_DIR/tools/cross_compile_android/requirements.txt"
     python "$TOOLCHAIN_DIR/tools/cross_compile_android/main.py" \
         --download-only --skip-update --auto-accept-license
 fi
