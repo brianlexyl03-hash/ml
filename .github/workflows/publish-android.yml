@@ -39,7 +39,10 @@ jobs:
           sha256sum $ASSETS > release-assets/SHA256SUMS.txt
           {
             echo "files<<EOF"
-            printf '%s\\n' $ASSETS
+            echo "release-assets/EVA-android-arm64.apk"
+            if [[ -s release-assets/EVA-android-arm64-unsigned.aab ]]; then
+              echo "release-assets/EVA-android-arm64-unsigned.aab"
+            fi
             echo "release-assets/SHA256SUMS.txt"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
