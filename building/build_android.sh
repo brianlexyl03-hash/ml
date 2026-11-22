@@ -201,7 +201,7 @@ app["android.skip_update"] = "True"
 app["android.allow_backup"] = "False"
 # Pin python-for-android to the upstream fix for its broken pip self-upgrade.
 app["p4a.branch"] = "develop"
-app["p4a.commit"] = "0382d27de2f7315ed98e74884bafb30365decdee"
+app["p4a.commit"] = "5865575d81d53617784428ee29f57be2716311ea"
 
 with spec_path.open("w", encoding="utf-8") as output:
     spec.write(output)
@@ -238,6 +238,9 @@ recipe = PdfminerSixRecipe()
 print(f"Installed local recipe: {recipe_dir}")
 PY
 
+# Force Buildozer to clone the exact p4a revision above. Existing checkouts can silently
+# retain the older pip-self-upgrade code even after p4a.commit changes.
+rm -rf "$ROOT_DIR/.buildozer/android/platform/python-for-android"
 # Start from a clean distribution so the pinned p4a source is used.
 rm -rf "$ROOT_DIR/.buildozer/android/platform/build-arm64-v8a/dists/scihubeva"
 export VIRTUAL_ENV="${VIRTUAL_ENV:-$(python -c 'import sys; print(sys.prefix)')}"
