@@ -240,6 +240,16 @@ recipe = PdfminerSixRecipe()
 print(f"Installed local recipe: {recipe_dir}")
 PY
 
+# python-for-android currently imports pip's internal capture_logging API.
+# New pip releases removed it, so pin the build venv to the last compatible line.
+P4A_VENV="$ROOT_DIR/.buildozer/android/platform/build-arm64-v8a/build/venv"
+if [[ -x "$P4A_VENV/bin/python" ]]; then
+    "$P4A_VENV/bin/python" -m pip install --disable-pip-version-check "pip==24.3.1"
+else
+    echo "python-for-android build virtualenv was not created; cannot pin its pip." >&2
+    exit 1
+fi
+
 rm -rf "$ROOT_DIR/.buildozer/android/platform/build-arm64-v8a/dists/scihubeva"
 python -m buildozer android update
 
