@@ -199,6 +199,9 @@ app["android.archs"] = "arm64-v8a"
 app["android.accept_sdk_license"] = "True"
 app["android.skip_update"] = "True"
 app["android.allow_backup"] = "False"
+# Pin python-for-android to the upstream fix for its broken pip self-upgrade.
+app["p4a.branch"] = "develop"
+app["p4a.commit"] = "0382d27de2f7315ed98e74884bafb30365decdee"
 
 with spec_path.open("w", encoding="utf-8") as output:
     spec.write(output)
@@ -206,12 +209,7 @@ with spec_path.open("w", encoding="utf-8") as output:
 print("Android requirements:", app["requirements"])
 PY
 
-echo "Preparing the Qt Android bootstrap before compiling..."
-export VIRTUAL_ENV="${VIRTUAL_ENV:-$(python -c 'import sys; print(sys.prefix)')}"
-export PATH="$(dirname "$(command -v python)"):$PATH"
-if ! python -m buildozer android update; then
-    echo "The first distribution pass exposed a pure-Python resolver limitation; adding a dedicated pdfminer recipe and retrying."
-fi
+echo "Preparing the Qt Android bootstrap with the pinned python-for-android fix..."
 
 echo "Adding a pure-Python pdfminer.six recipe to avoid its Android pip resolver conflict..."
 python - <<'PY'
@@ -240,17 +238,10 @@ recipe = PdfminerSixRecipe()
 print(f"Installed local recipe: {recipe_dir}")
 PY
 
-# python-for-android currently imports pip's internal capture_logging API.
-# New pip releases removed it, so pin the build venv to the last compatible line.
-P4A_VENV="$ROOT_DIR/.buildozer/android/platform/build-arm64-v8a/build/venv"
-if [[ -x "$P4A_VENV/bin/python" ]]; then
-    "$P4A_VENV/bin/python" -m pip install --disable-pip-version-check "pip==24.3.1"
-else
-    echo "python-for-android build virtualenv was not created; cannot pin its pip." >&2
-    exit 1
-fi
-
+# Start from a clean distribution so the pinned p4a source is used.
 rm -rf "$ROOT_DIR/.buildozer/android/platform/build-arm64-v8a/dists/scihubeva"
+export VIRTUAL_ENV="${VIRTUAL_ENV:-$(python -c 'import sys; print(sys.prefix)')}"
+export PATH="$(dirname "$(command -v python)"):$PATH"
 python -m buildozer android update
 
 echo "Patching Qt bootstrap library order so QtCore initializes before QtQuick..."
