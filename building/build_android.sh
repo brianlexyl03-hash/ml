@@ -317,7 +317,9 @@ for path in candidates:
         root = ET.parse(path).getroot()
     except (ET.ParseError, OSError):
         continue
-    for array in root.findall(".//array"):
+    # python-for-android renders this as an Android string-array resource,
+    # not a generic <array>; searching for <array> silently misses the real file.
+    for array in root.findall(".//string-array"):
         if array.get("name") != "qt_libs":
             continue
         items = [(item.text or "").strip() for item in array.findall("item")]
