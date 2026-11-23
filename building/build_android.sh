@@ -299,6 +299,46 @@ if not patched:
 print(f"Applied QtCore-first library ordering to {patched} Qt bootstrap template(s).")
 PY
 
+echo "Regenerating the Android project after patching the Qt bootstrap template..."
+# The first update above fetches python-for-android. This second update is required:
+# it renders the Android project from the patched Qt template, rather than leaving
+# the already-generated libs.xml with the old Qt library order.
+python -m buildozer android update
+
+echo "Verifying the generated Qt library load order..."
+python - <<'PY'
+from pathlib import Path
+import xml.etree.ElementTree as ET
+
+candidates = list(Path(".buildozer").rglob("libs.xml"))
+checked = []
+for path in candidates:
+    try:
+        root = ET.parse(path).getroot()
+    except (ET.ParseError, OSError):
+        continue
+    for array in root.findall(".//array"):
+        if array.get("name") != "qt_libs":
+            continue
+        items = [(item.text or "").strip() for item in array.findall("item")]
+        checked.append((path, items))
+
+if not checked:
+    raise SystemExit("No generated qt_libs array found; refusing to build an unverified APK.")
+
+for path, items in checked:
+    core = [i for i, item in enumerate(items) if "Qt6Core" in item]
+    if len(core) != 1 or core[0] != 1:
+        raise SystemExit(
+            f"QtCore must occur exactly once immediately after c++_shared in {path}; "
+            f"actual order: {items}"
+        )
+    if not items or "c++_shared" not in items[0]:
+        raise SystemExit(f"c++_shared is not the first Qt library in {path}: {items}")
+    print(f"Verified {path}: {items[:4]}")
+
+print(f"Verified QtCore-first ordering in {len(checked)} generated resource file(s).")
+PY
 
 echo "Building the ARM64 debug APK with Buildozer..."
 export VIRTUAL_ENV="${VIRTUAL_ENV:-$(python -c 'import sys; print(sys.prefix)')}"
