@@ -1,5 +1,6 @@
 name: Build latest version
-on: [push]
+on:
+  workflow_dispatch:
 jobs:
   build-macos-arm64:
     runs-on: macos-latest
